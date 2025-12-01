@@ -24,7 +24,7 @@ export default function appSrc(
   app.use(bodyParser.json());
 
   app.get("/login/", (req, res) => {
-    res.send("YOUR_OPENEDU_LOGIN_HERE");
+    res.send("27a51f8a-d703-492b-9fe6-b1d0e877d2ad");
   });
 
   app.get("/code/", (req, res) => {
@@ -49,7 +49,7 @@ export default function appSrc(
   });
 
   app.all("/*", (req, res) => {
-    res.send("YOUR_OPENEDU_LOGIN_HERE");
+    res.send("27a51f8a-d703-492b-9fe6-b1d0e877d2ad");
   });
 
   return app;
