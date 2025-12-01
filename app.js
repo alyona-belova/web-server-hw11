@@ -12,7 +12,7 @@ const TEXT_PLAIN_HEADER = {
   "Content-Type": "text/plain; charset=utf-8",
 };
 
-const SYSTEM_LOGIN = "27a51f8a-d703-492b-9fe6-b1d0e877d2ad";
+export const SYSTEM_LOGIN = "27a51f8a-d703-492b-9fe6-b1d0e877d2ad";
 
 /** Middleware для CORS */
 function corsMiddleware(req, res, next) {
@@ -51,19 +51,26 @@ function readHttpResponse(response) {
 /** Универсальная функция для GET-запроса по URL */
 async function fetchUrlData(url) {
   return new Promise((resolve, reject) => {
-    http.get(url, async (response) => {
-      try {
-        const data = await readHttpResponse(response);
-        resolve(data);
-      } catch (err) {
-        reject(err);
-      }
-    }).on("error", reject);
+    http
+      .get(url, async (response) => {
+        try {
+          const data = await readHttpResponse(response);
+          resolve(data);
+        } catch (err) {
+          reject(err);
+        }
+      })
+      .on("error", reject);
   });
 }
 
 /** Создание Express-приложения */
-function createApp(express, bodyParser, createReadStream, currentFilePath) {
+export function createApp(
+  express,
+  bodyParser,
+  createReadStream,
+  currentFilePath
+) {
   const app = express();
 
   app.use(bodyParser.urlencoded({ extended: false }));
@@ -114,5 +121,3 @@ function createApp(express, bodyParser, createReadStream, currentFilePath) {
 
   return app;
 }
-
-module.exports = { createApp, SYSTEM_LOGIN };
