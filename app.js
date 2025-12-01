@@ -1,6 +1,6 @@
-const fs = require("fs");
-const crypto = require("crypto");
-const http = require("http");
+import fs from "fs";
+import crypto from "crypto";
+import http from "http";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -14,18 +14,18 @@ const TEXT_PLAIN_HEADER = {
 
 export const SYSTEM_LOGIN = "27a51f8a-d703-492b-9fe6-b1d0e877d2ad";
 
-/** Middleware для CORS */
+/** Middleware */
 function corsMiddleware(req, res, next) {
   res.set(CORS_HEADERS);
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 }
 
-/** Чтение файла через поток */
-function readFileAsync(filePath, createReadStream) {
+/** Read file async */
+function readFileAsync(filePath) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    const stream = createReadStream(filePath);
+    const stream = fs.createReadStream(filePath);
 
     stream.on("data", (chunk) => chunks.push(chunk));
     stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
@@ -33,12 +33,12 @@ function readFileAsync(filePath, createReadStream) {
   });
 }
 
-/** Генерация SHA1 хеша */
+/** SHA1 */
 function generateSha1Hash(text) {
   return crypto.createHash("sha1").update(text).digest("hex");
 }
 
-/** Чтение данных из HTTP-ответа */
+/** Read HTTP response */
 function readHttpResponse(response) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -48,7 +48,7 @@ function readHttpResponse(response) {
   });
 }
 
-/** Универсальная функция для GET-запроса по URL */
+/** GET request */
 async function fetchUrlData(url) {
   return new Promise((resolve, reject) => {
     http
@@ -64,37 +64,27 @@ async function fetchUrlData(url) {
   });
 }
 
-/** Создание Express-приложения */
-export function createApp(
-  express,
-  bodyParser,
-  createReadStream,
-  currentFilePath
-) {
+export function createApp(express, bodyParser, currentFilePath) {
   const app = express();
 
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
   app.use(corsMiddleware);
 
-  // Возвращает системный логин
   app.get("/login/", (_req, res) => {
     res.set(TEXT_PLAIN_HEADER).send(SYSTEM_LOGIN);
   });
 
-  // Возвращает содержимое текущего файла
   app.get("/code/", async (_req, res) => {
-    const fileContent = await readFileAsync(currentFilePath, createReadStream);
+    const fileContent = await readFileAsync(new URL(currentFilePath));
     res.set(TEXT_PLAIN_HEADER).send(fileContent);
   });
 
-  // Возвращает SHA1 хеш переданного параметра
   app.get("/sha1/:input/", (req, res) => {
     const hash = generateSha1Hash(req.params.input);
     res.set(TEXT_PLAIN_HEADER).send(hash);
   });
 
-  // GET /req/?addr=<url>
   app.get("/req/", async (req, res) => {
     try {
       const data = await fetchUrlData(req.query.addr);
@@ -104,7 +94,6 @@ export function createApp(
     }
   });
 
-  // POST /req/ с JSON { addr: <url> }
   app.post("/req/", async (req, res) => {
     try {
       const data = await fetchUrlData(req.body.addr);
@@ -114,7 +103,6 @@ export function createApp(
     }
   });
 
-  // Любой другой маршрут возвращает системный логин
   app.all(/.*/, (_req, res) => {
     res.set(TEXT_PLAIN_HEADER).send(SYSTEM_LOGIN);
   });
